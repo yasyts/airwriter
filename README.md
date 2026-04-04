@@ -1,6 +1,25 @@
 # Air Writer Studio
 
-Air Writer Studio is a local webcam drawing app that lets you write in the air with hand gestures and can also publish its output as a virtual camera for Zoom, Google Meet, Microsoft Teams, and other camera-based apps.
+Air Writer Studio now has two ways to use it:
+
+- A browser version that can be hosted publicly on Vercel so anyone can use it from a modern browser.
+- A local desktop-style Python version that can also publish to a virtual camera for Zoom, Google Meet, Microsoft Teams, and similar apps.
+
+## Browser version
+
+The browser app uses your webcam directly on the page and supports the same core gesture flow:
+
+- Left hand, only index finger open: draw in the air.
+- Left hand, only middle finger open: open the color palette and choose with the middle fingertip.
+- Left hand, only ring finger open: open the tool palette and choose with the ring fingertip.
+- Left hand, only little finger open: save a screenshot.
+- Left hand, open palm: erase.
+- Right hand, thumb and index active: pinch closer to make the brush and eraser smaller, or spread them apart to make them larger.
+
+Important:
+
+- The web version works in the browser with webcam permission.
+- A website cannot become a system-wide Zoom camera device by itself. For actual Zoom camera output, use the desktop version with OBS Virtual Camera.
 
 ## What it does
 
@@ -63,6 +82,9 @@ Useful options:
 
 ## Files
 
+- `index.html`: Vercel/browser app entry page
+- `styles.css`: browser app styles
+- `web-app.js`: browser app hand tracking logic
 - `app.py`: main Air Writer application
 - `models/hand_landmarker.task`: bundled MediaPipe hand model
 - `Launch Air Writer.bat`: preview launcher

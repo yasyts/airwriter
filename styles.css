@@ -1,0 +1,268 @@
+:root {
+  --bg: #f4efe6;
+  --panel: rgba(255, 255, 255, 0.76);
+  --line: rgba(27, 23, 18, 0.09);
+  --ink: #171717;
+  --muted: #625f59;
+  --accent: #8e2d20;
+  --accent-2: #27492d;
+  --shadow: 0 22px 80px rgba(27, 23, 18, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Manrope", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(142, 45, 32, 0.17), transparent 30%),
+    radial-gradient(circle at 80% 20%, rgba(39, 73, 45, 0.12), transparent 24%),
+    linear-gradient(135deg, #f7f2e9 0%, #ece3d5 100%);
+}
+
+.shell {
+  width: min(1240px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 42px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 18px;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.hero-copy,
+.hero-guide {
+  padding: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: "Fraunces", serif;
+  letter-spacing: -0.04em;
+}
+
+h1 {
+  font-size: clamp(2.8rem, 5vw, 4.8rem);
+  line-height: 0.95;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.4rem;
+}
+
+.lede,
+.status,
+.note-card p,
+.gesture-list li {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.lede {
+  max-width: 42rem;
+  font-size: 1.06rem;
+  margin-top: 18px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.button {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 14px 18px;
+  font-size: 0.96rem;
+  font-weight: 600;
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(23, 23, 23, 0.08);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.button-primary {
+  background: var(--ink);
+  color: #fff;
+}
+
+.button-secondary {
+  background: transparent;
+  border: 1px solid rgba(23, 23, 23, 0.12);
+  color: var(--ink);
+}
+
+.status {
+  margin: 18px 0 0;
+  font-size: 0.95rem;
+}
+
+.gesture-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.gesture-list li {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(23, 23, 23, 0.08);
+}
+
+.gesture-list strong {
+  color: var(--ink);
+}
+
+.studio {
+  margin-top: 18px;
+  padding: 24px;
+}
+
+.studio-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.metrics {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.metric {
+  min-width: 104px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(23, 23, 23, 0.08);
+}
+
+.metric-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.metric-value {
+  display: block;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.canvas-wrap {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #161616;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.camera,
+.stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.camera {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stage {
+  display: block;
+}
+
+.notes {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.note-card {
+  padding: 22px;
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .notes {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .shell {
+    width: min(100% - 18px, 100%);
+    padding-top: 14px;
+  }
+
+  .hero-copy,
+  .hero-guide,
+  .studio,
+  .note-card {
+    padding: 18px;
+  }
+
+  .canvas-wrap {
+    aspect-ratio: 3 / 4;
+  }
+}

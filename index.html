@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Air Writer Live</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-copy panel">
+        <p class="eyebrow">Live Browser App</p>
+        <h1>Air Writer Live</h1>
+        <p class="lede">
+          Open your camera in the browser and write in air with hand gestures.
+          This version runs directly on the page, so anyone with a modern browser can use it.
+        </p>
+        <div class="actions">
+          <button id="startButton" class="button button-primary">Start Camera</button>
+          <button id="clearButton" class="button button-secondary" disabled>Clear Canvas</button>
+          <button id="shotButton" class="button button-secondary" disabled>Save Screenshot</button>
+        </div>
+        <p id="statusText" class="status">Camera is off. Click Start Camera to begin.</p>
+      </div>
+
+      <div class="hero-guide panel">
+        <p class="eyebrow">Gesture Map</p>
+        <ul class="gesture-list">
+          <li><strong>Left index</strong> draws</li>
+          <li><strong>Left middle</strong> opens color mode</li>
+          <li><strong>Left ring</strong> opens tool mode</li>
+          <li><strong>Left pinky</strong> saves a screenshot</li>
+          <li><strong>Left open palm</strong> erases</li>
+          <li><strong>Right thumb + index</strong> shrink or grow brush size</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="studio panel">
+      <div class="studio-header">
+        <div>
+          <p class="eyebrow">Studio</p>
+          <h2>Camera Canvas</h2>
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <span class="metric-label">Tool</span>
+            <span id="toolMetric" class="metric-value">Pen</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Color</span>
+            <span id="colorMetric" class="metric-value">Ink</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Size</span>
+            <span id="sizeMetric" class="metric-value">4 px</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+        <video id="camera" class="camera" autoplay playsinline muted></video>
+        <canvas id="stage" class="stage"></canvas>
+      </div>
+    </section>
+
+    <section class="notes">
+      <article class="panel note-card">
+        <h3>What Works Online</h3>
+        <p>
+          This Vercel-hosted version uses browser camera access and MediaPipe hand tracking.
+          It works best in Chrome, Edge, and other modern Chromium browsers.
+        </p>
+      </article>
+      <article class="panel note-card">
+        <h3>Important Limit</h3>
+        <p>
+          A website can use your webcam in-browser, but it cannot become a system-wide Zoom camera device by itself.
+          For Zoom camera output, use the desktop version in the GitHub repo.
+        </p>
+      </article>
+      <article class="panel note-card">
+        <h3>Need The Desktop App?</h3>
+        <p>
+          The full local version with virtual camera support is still included in the repository for people who want OBS-style camera output.
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <script type="module" src="./web-app.js"></script>
+</body>
+</html>
