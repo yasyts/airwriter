@@ -1,6 +1,6 @@
 @echo off
 cd /d "%~dp0"
-python app.py --virtual-camera --windowed
+python desktop_app.py --virtual-camera --windowed
 if errorlevel 1 (
   echo.
   echo Virtual camera mode could not start.

@@ -56,7 +56,7 @@ Also supported by `pyvirtualcam`:
 3. Start the app with:
 
 ```powershell
-python app.py --virtual-camera --windowed
+python desktop_app.py --virtual-camera --windowed
 ```
 
 or just double-click:
@@ -68,7 +68,7 @@ or just double-click:
 ## Command-line options
 
 ```powershell
-python app.py --help
+python desktop_app.py --help
 ```
 
 Useful options:
@@ -85,7 +85,7 @@ Useful options:
 - `index.html`: Vercel/browser app entry page
 - `styles.css`: browser app styles
 - `web-app.js`: browser app hand tracking logic
-- `app.py`: main Air Writer application
+- `desktop_app.py`: main desktop Air Writer application
 - `models/hand_landmarker.task`: bundled MediaPipe hand model
 - `Launch Air Writer.bat`: preview launcher
 - `Launch Air Writer Virtual Camera.bat`: Zoom/Meet launcher
