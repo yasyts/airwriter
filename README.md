@@ -32,8 +32,22 @@ Important:
 
 ## One-click launchers
 
+- `Install Air Writer.bat`: installs Python dependencies for the desktop app.
 - `Launch Air Writer.bat`: opens the normal fullscreen local app.
 - `Launch Air Writer Virtual Camera.bat`: opens the app and also publishes a virtual camera feed for Zoom and similar apps.
+
+## Download options
+
+- Browser app: open [airwriter-nine.vercel.app](https://airwriter-nine.vercel.app)
+- Desktop app bundle: download [AirWriter-Studio-Windows.zip](https://airwriter-nine.vercel.app/downloads/AirWriter-Studio-Windows.zip)
+
+The desktop ZIP includes:
+
+- `Install Air Writer.bat`
+- `Launch Air Writer.bat`
+- `Launch Air Writer Virtual Camera.bat`
+- `desktop_app.py`
+- `models/hand_landmarker.task`
 
 ## Virtual camera use
 
@@ -61,9 +75,19 @@ python desktop_app.py --virtual-camera --windowed
 
 or just double-click:
 
+- `Install Air Writer.bat`
 - `Launch Air Writer Virtual Camera.bat`
 
 4. In Zoom, Meet, or Teams, choose the virtual camera device created by your backend, such as `OBS Virtual Camera`.
+
+## Connect to other apps
+
+- Zoom, Google Meet, Microsoft Teams, and similar meeting apps:
+  Use `Launch Air Writer Virtual Camera.bat`, then select `OBS Virtual Camera` as the camera input.
+- OBS Studio, Streamlabs, Discord, Loom, and screen-recording tools:
+  Use `Launch Air Writer.bat`, then add the Air Writer window with window capture, display capture, or screen share.
+- Browser-only use:
+  Open the Vercel app and allow webcam access.
 
 ## Command-line options
 
@@ -89,6 +113,7 @@ Useful options:
 - `models/hand_landmarker.task`: bundled MediaPipe hand model
 - `Launch Air Writer.bat`: preview launcher
 - `Launch Air Writer Virtual Camera.bat`: Zoom/Meet launcher
+- `Install Air Writer.bat`: dependency installer for the desktop bundle
 - `captures/`: screenshots saved from the app
 
 ## Notes

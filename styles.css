@@ -140,6 +140,10 @@ h3 {
   font-size: 0.95rem;
 }
 
+.status a {
+  color: inherit;
+}
+
 .gesture-list {
   list-style: none;
   padding: 0;
@@ -235,6 +239,11 @@ h3 {
 
 .note-card {
   padding: 22px;
+}
+
+.note-button {
+  margin-top: 16px;
+  display: inline-flex;
 }
 
 @media (max-width: 980px) {

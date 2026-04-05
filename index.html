@@ -23,6 +23,8 @@
           <button id="startButton" class="button button-primary">Start Camera</button>
           <button id="clearButton" class="button button-secondary" disabled>Clear Canvas</button>
           <button id="shotButton" class="button button-secondary" disabled>Save Screenshot</button>
+          <a class="button button-secondary" href="./downloads/AirWriter-Studio-Windows.zip" download>Download Desktop App</a>
+          <a class="button button-secondary" href="#connect-options">Connect To Other Apps</a>
         </div>
         <p id="statusText" class="status">Camera is off. Click Start Camera to begin.</p>
       </div>
@@ -68,7 +70,7 @@
       </div>
     </section>
 
-    <section class="notes">
+    <section id="connect-options" class="notes">
       <article class="panel note-card">
         <h3>What Works Online</h3>
         <p>
@@ -77,16 +79,25 @@
         </p>
       </article>
       <article class="panel note-card">
-        <h3>Important Limit</h3>
+        <h3>Download Desktop App</h3>
         <p>
-          A website can use your webcam in-browser, but it cannot become a system-wide Zoom camera device by itself.
-          For Zoom camera output, use the desktop version in the GitHub repo.
+          Download the Windows desktop bundle if you want a local app with installer, launchers,
+          and the hand-tracking model included.
+        </p>
+        <a class="button button-secondary note-button" href="./downloads/AirWriter-Studio-Windows.zip" download>Download ZIP</a>
+      </article>
+      <article class="panel note-card">
+        <h3>Connect To Zoom Or Meet</h3>
+        <p>
+          Use the desktop version with <strong>Launch Air Writer Virtual Camera.bat</strong>, then
+          choose <strong>OBS Virtual Camera</strong> inside Zoom, Meet, Teams, or similar apps.
         </p>
       </article>
       <article class="panel note-card">
-        <h3>Need The Desktop App?</h3>
+        <h3>Connect To OBS Or Discord</h3>
         <p>
-          The full local version with virtual camera support is still included in the repository for people who want OBS-style camera output.
+          Open the normal desktop app and add it to OBS, Streamlabs, Discord, Loom, or other tools
+          using window capture, screen capture, or screen share.
         </p>
       </article>
     </section>
