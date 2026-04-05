@@ -4,18 +4,18 @@ import {
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs";
 
 const COLORS = [
-  { name: "Ink", bgr: [112, 54, 10] },
-  { name: "Pine", bgr: [28, 82, 24] },
-  { name: "Wine", bgr: [18, 18, 132] },
-  { name: "Ochre", bgr: [0, 92, 150] },
-  { name: "Onyx", bgr: [24, 24, 24] },
+  { name: "Onyx", bgr: [18, 18, 18] },
+  { name: "Pine", bgr: [20, 74, 28] },
+  { name: "Merlot", bgr: [28, 28, 118] },
+  { name: "Umber", bgr: [18, 64, 102] },
+  { name: "Navy", bgr: [88, 48, 18] },
 ];
 
 const TOOLS = [
   { name: "Pen", thickness: 4, glow: false },
   { name: "Marker", thickness: 9, glow: false },
   { name: "Pencil", thickness: 2, glow: false },
-  { name: "Neon", thickness: 5, glow: true },
+  { name: "Brush", thickness: 6, glow: false },
 ];
 
 const FINGER_LANDMARKS = {
@@ -33,6 +33,25 @@ const HAND_CONNECTIONS = [
   [13, 14], [14, 15], [15, 16],
   [17, 18], [18, 19], [19, 20],
 ];
+
+const STABILITY = {
+  handHoldMs: 180,
+  gestureConfirmFrames: 4,
+  idleConfirmFrames: 2,
+  sizeModeConfirmFrames: 3,
+  drawSmoothing: 0.36,
+  paletteSmoothing: 0.28,
+  sizeSmoothing: 0.2,
+  sizeScaleSmoothing: 0.16,
+  sizeScaleStep: 0.05,
+  sizeScaleMin: 0.55,
+  sizeScaleMax: 2.4,
+  pinchMinDistance: 10,
+  pinchMaxDistance: 170,
+  paletteCooldownMs: 350,
+  screenshotCooldownMs: 1600,
+  drawMinDistance: 1.1,
+};
 
 const video = document.getElementById("camera");
 const stage = document.getElementById("stage");
@@ -52,17 +71,29 @@ let handLandmarker = null;
 let stream = null;
 let animationFrameId = 0;
 let lastVideoTime = -1;
+let latestDetection = null;
 let previousPoint = null;
 let selectedColor = COLORS[0];
 let selectedTool = TOOLS[0];
 let sizeScale = 1;
 let sizeAdjustActive = false;
+let sizeModeFrames = 0;
 let lastColorSelectAt = 0;
 let lastToolSelectAt = 0;
 let lastScreenshotAt = 0;
 let activeModeLabel = "Waiting for left hand";
 let colorPaletteBoxes = [];
 let toolPaletteBoxes = [];
+const trackedPoints = new Map();
+const handCache = {
+  left: { landmarks: null, lastSeenAt: 0 },
+  right: { landmarks: null, lastSeenAt: 0 },
+};
+const gestureTracker = {
+  candidate: "idle",
+  stable: "idle",
+  frames: 0,
+};
 
 function setStatus(message) {
   statusText.textContent = message;
@@ -113,6 +144,28 @@ function landmarkToPoint(landmark) {
   };
 }
 
+function smoothTrackedPoint(key, point, smoothing) {
+  if (!point) {
+    trackedPoints.delete(key);
+    return null;
+  }
+
+  const previous = trackedPoints.get(key);
+  const next = !previous
+    ? point
+    : {
+        x: previous.x * (1 - smoothing) + point.x * smoothing,
+        y: previous.y * (1 - smoothing) + point.y * smoothing,
+      };
+
+  trackedPoints.set(key, next);
+  return next;
+}
+
+function clearTrackedPoints(keys) {
+  keys.forEach((key) => trackedPoints.delete(key));
+}
+
 function getFingerStates(landmarks) {
   const wrist = landmarkToPoint(landmarks[0]);
   const states = {};
@@ -154,8 +207,8 @@ function getPointerRadius(size) {
 function drawVisibleLine(ctx, start, end, color, thickness) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  ctx.strokeStyle = "rgba(225,225,225,0.96)";
-  ctx.lineWidth = thickness + 2;
+  ctx.strokeStyle = "rgba(8, 8, 8, 0.96)";
+  ctx.lineWidth = thickness + 3;
   ctx.beginPath();
   ctx.moveTo(start.x, start.y);
   ctx.lineTo(end.x, end.y);
@@ -172,8 +225,8 @@ function drawVisibleLine(ctx, start, end, color, thickness) {
 function drawSegment(start, end, tool, color, thickness) {
   drawingCtx.save();
   if (tool.glow) {
-    drawingCtx.shadowColor = bgrToCss(color, 0.45);
-    drawingCtx.shadowBlur = thickness * 3;
+    drawingCtx.shadowColor = "rgba(0, 0, 0, 0.28)";
+    drawingCtx.shadowBlur = thickness * 1.75;
   }
   drawVisibleLine(drawingCtx, start, end, color, thickness);
   drawingCtx.restore();
@@ -249,7 +302,7 @@ function drawColorPalette(active) {
     const x = left + index * (boxWidth + gap);
     colorPaletteBoxes.push({ rect: { x, y: top, width: boxWidth, height: boxHeight }, choice });
 
-    stageCtx.fillStyle = bgrToCss(choice.bgr.map((channel) => Math.min(channel + 6, 255)));
+    stageCtx.fillStyle = bgrToCss(choice.bgr);
     stageCtx.fillRect(x, top, boxWidth, boxHeight);
     stageCtx.strokeStyle = choice.name === selectedColor.name ? "#ffffff" : "rgba(50,50,50,0.9)";
     stageCtx.lineWidth = choice.name === selectedColor.name ? 3 : 2;
@@ -295,13 +348,13 @@ function applyPaletteSelection(points, items, kind) {
   for (const point of points) {
     for (const item of items) {
       if (!pointInsideRect(point, item.rect)) continue;
-      if (kind === "color" && now - lastColorSelectAt >= 350) {
+      if (kind === "color" && now - lastColorSelectAt >= STABILITY.paletteCooldownMs) {
         selectedColor = item.choice;
         lastColorSelectAt = now;
         setStatus(`Color changed to ${selectedColor.name}`);
         return;
       }
-      if (kind === "tool" && now - lastToolSelectAt >= 350) {
+      if (kind === "tool" && now - lastToolSelectAt >= STABILITY.paletteCooldownMs) {
         selectedTool = item.tool;
         lastToolSelectAt = now;
         setStatus(`Tool changed to ${selectedTool.name}`);
@@ -319,7 +372,7 @@ function updateMetrics() {
 
 function downloadScreenshot() {
   const now = performance.now();
-  if (now - lastScreenshotAt < 1600) return;
+  if (now - lastScreenshotAt < STABILITY.screenshotCooldownMs) return;
   lastScreenshotAt = now;
   const link = document.createElement("a");
   link.href = stage.toDataURL("image/png");
@@ -333,20 +386,71 @@ function clearCanvas() {
   setStatus("Canvas cleared.");
 }
 
+function updateHandCache(result) {
+  const now = performance.now();
+  const detected = getHandsByLabel(result);
+
+  for (const handName of ["left", "right"]) {
+    const landmarks = detected[handName];
+    if (landmarks) {
+      handCache[handName].landmarks = landmarks;
+      handCache[handName].lastSeenAt = now;
+      continue;
+    }
+
+    if (now - handCache[handName].lastSeenAt > STABILITY.handHoldMs) {
+      handCache[handName].landmarks = null;
+    }
+  }
+
+  return {
+    left: handCache.left.landmarks,
+    right: handCache.right.landmarks,
+  };
+}
+
+function updateStableGesture(nextGesture) {
+  if (nextGesture === gestureTracker.candidate) {
+    gestureTracker.frames += 1;
+  } else {
+    gestureTracker.candidate = nextGesture;
+    gestureTracker.frames = 1;
+  }
+
+  const requiredFrames = nextGesture === "idle"
+    ? STABILITY.idleConfirmFrames
+    : STABILITY.gestureConfirmFrames;
+
+  if (gestureTracker.frames >= requiredFrames) {
+    gestureTracker.stable = nextGesture;
+  }
+
+  return gestureTracker.stable;
+}
+
 function updateSizeFromRightHand(rightHand) {
   sizeAdjustActive = false;
-  if (!rightHand) return;
+  if (!rightHand) {
+    sizeModeFrames = 0;
+    clearTrackedPoints(["right-thumb", "right-index"]);
+    return;
+  }
 
   const states = getFingerStates(rightHand);
-  const isSizeMode = states.index && !states.middle && !states.ring && !states.pinky;
-  if (!isSizeMode) return;
+  const wantsSizeMode = states.index && !states.middle && !states.ring && !states.pinky;
+  sizeModeFrames = wantsSizeMode ? sizeModeFrames + 1 : 0;
+  if (sizeModeFrames < STABILITY.sizeModeConfirmFrames) return;
 
   sizeAdjustActive = true;
-  const thumbTip = landmarkToPoint(rightHand[4]);
-  const indexTip = landmarkToPoint(rightHand[8]);
+  const thumbTip = smoothTrackedPoint("right-thumb", landmarkToPoint(rightHand[4]), STABILITY.sizeSmoothing);
+  const indexTip = smoothTrackedPoint("right-index", landmarkToPoint(rightHand[8]), STABILITY.sizeSmoothing);
   const distance = pointDistance(thumbTip, indexTip);
-  const mappedScale = 0.45 + ((Math.max(10, Math.min(180, distance)) - 10) / 170) * (3.2 - 0.45);
-  sizeScale = sizeScale * 0.7 + mappedScale * 0.3;
+  const clampedDistance = Math.max(STABILITY.pinchMinDistance, Math.min(STABILITY.pinchMaxDistance, distance));
+  const mappedScale = STABILITY.sizeScaleMin
+    + ((clampedDistance - STABILITY.pinchMinDistance) / (STABILITY.pinchMaxDistance - STABILITY.pinchMinDistance))
+      * (STABILITY.sizeScaleMax - STABILITY.sizeScaleMin);
+  const smoothedScale = sizeScale * (1 - STABILITY.sizeScaleSmoothing) + mappedScale * STABILITY.sizeScaleSmoothing;
+  sizeScale = Math.round(smoothedScale / STABILITY.sizeScaleStep) * STABILITY.sizeScaleStep;
 
   stageCtx.strokeStyle = "rgba(255,215,140,0.95)";
   stageCtx.lineWidth = 2;
@@ -361,8 +465,8 @@ function updateSizeFromRightHand(rightHand) {
 }
 
 function renderHud() {
-  stageCtx.fillStyle = "rgba(20,20,20,0.42)";
-  stageCtx.fillRect(18, 18, 540, 138);
+  stageCtx.fillStyle = "rgba(10, 10, 10, 0.58)";
+  stageCtx.fillRect(18, 18, 560, 144);
   stageCtx.fillStyle = "#ffffff";
   stageCtx.font = '700 36px "Fraunces", serif';
   stageCtx.fillText("Air Writer Live", 34, 58);
@@ -408,11 +512,17 @@ function getHandsByLabel(result) {
 function handleLeftHand(leftHand, gesture) {
   if (!leftHand) {
     previousPoint = null;
+    gestureTracker.candidate = "idle";
+    gestureTracker.stable = "idle";
+    gestureTracker.frames = 0;
+    clearTrackedPoints(["left-index", "left-middle", "left-ring"]);
     activeModeLabel = "Waiting for left hand";
     return;
   }
 
-  const indexTip = landmarkToPoint(leftHand[8]);
+  const indexTip = smoothTrackedPoint("left-index", landmarkToPoint(leftHand[8]), STABILITY.drawSmoothing);
+  const middleTip = smoothTrackedPoint("left-middle", landmarkToPoint(leftHand[12]), STABILITY.paletteSmoothing);
+  const ringTip = smoothTrackedPoint("left-ring", landmarkToPoint(leftHand[16]), STABILITY.paletteSmoothing);
   const drawPoint = smoothPoint(indexTip);
   const brushThickness = getToolThickness();
   const eraserThickness = getEraserThickness();
@@ -420,7 +530,7 @@ function handleLeftHand(leftHand, gesture) {
   if (gesture === "draw") {
     activeModeLabel = "Draw";
     drawPointer(drawPoint, selectedColor.bgr, getPointerRadius(brushThickness));
-    if (previousPoint) {
+    if (previousPoint && pointDistance(previousPoint, drawPoint) >= STABILITY.drawMinDistance) {
       drawSegment(previousPoint, drawPoint, selectedTool, selectedColor.bgr, brushThickness);
     }
     previousPoint = drawPoint;
@@ -430,7 +540,7 @@ function handleLeftHand(leftHand, gesture) {
   if (gesture === "erase") {
     activeModeLabel = "Erase";
     drawPointer(drawPoint, [255, 255, 255], getPointerRadius(eraserThickness));
-    if (previousPoint) {
+    if (previousPoint && pointDistance(previousPoint, drawPoint) >= STABILITY.drawMinDistance) {
       eraseSegment(previousPoint, drawPoint, eraserThickness);
     }
     previousPoint = drawPoint;
@@ -441,7 +551,7 @@ function handleLeftHand(leftHand, gesture) {
 
   if (gesture === "color") {
     activeModeLabel = "Color select";
-    const points = [landmarkToPoint(leftHand[12])];
+    const points = [middleTip];
     applyPaletteSelection(points, colorPaletteBoxes, "color");
     points.forEach((point) => drawPointer(point, [255, 255, 255], 8));
     return;
@@ -449,7 +559,7 @@ function handleLeftHand(leftHand, gesture) {
 
   if (gesture === "tool") {
     activeModeLabel = "Tool select";
-    const points = [landmarkToPoint(leftHand[16])];
+    const points = [ringTip];
     applyPaletteSelection(points, toolPaletteBoxes, "tool");
     points.forEach((point) => drawPointer(point, [255, 255, 255], 8));
     return;
@@ -483,22 +593,23 @@ async function renderLoop() {
   resizeCanvases();
   drawSceneFrame();
 
-  let result = null;
+  let result = latestDetection;
   if (video.currentTime !== lastVideoTime) {
     try {
       result = handLandmarker.detectForVideo(video, performance.now());
     } catch (error) {
       result = handLandmarker.detectForVideo(video);
     }
+    latestDetection = result;
     lastVideoTime = video.currentTime;
   }
 
-  const { left, right } = getHandsByLabel(result);
+  const { left, right } = updateHandCache(result);
   if (left) drawHandMesh(left, "Left");
   if (right) drawHandMesh(right, "Right");
 
   const leftStates = left ? getFingerStates(left) : null;
-  const gesture = leftStates ? classifyGesture(leftStates) : "idle";
+  const gesture = leftStates ? updateStableGesture(classifyGesture(leftStates)) : "idle";
 
   updateSizeFromRightHand(right);
   drawColorPalette(gesture === "color");
@@ -522,9 +633,9 @@ async function ensureLandmarker() {
     },
     runningMode: "VIDEO",
     numHands: 2,
-    minHandDetectionConfidence: 0.65,
-    minHandPresenceConfidence: 0.6,
-    minTrackingConfidence: 0.6,
+    minHandDetectionConfidence: 0.7,
+    minHandPresenceConfidence: 0.68,
+    minTrackingConfidence: 0.7,
   });
 }
 
