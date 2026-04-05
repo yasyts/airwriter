@@ -9,12 +9,12 @@ Air Writer Studio now has two ways to use it:
 
 The browser app uses your webcam directly on the page and supports the same core gesture flow:
 
-- Left hand, only index finger open: draw in the air.
-- Left hand, only middle finger open: open the color palette and choose with the middle fingertip.
-- Left hand, only ring finger open: open the tool palette and choose with the ring fingertip.
-- Left hand, only little finger open: save a screenshot.
-- Left hand, open palm: erase.
-- Right hand, thumb and index active: pinch closer to make the brush and eraser smaller, or spread them apart to make them larger.
+- Right hand, only index finger open: draw in the air.
+- Right hand, only middle finger open: open the color palette and choose with the middle fingertip.
+- Right hand, only ring finger open: open the tool palette and choose with the ring fingertip.
+- Right hand, only little finger open: save a screenshot.
+- Right hand, open palm: erase.
+- Left hand, thumb and index active: pinch closer to make the brush and eraser smaller, or spread them apart to make them larger.
 
 Important:
 
@@ -23,12 +23,12 @@ Important:
 
 ## What it does
 
-- Left hand, only index finger open: draw in the air.
-- Left hand, only middle finger open: open the color palette and choose with the middle fingertip.
-- Left hand, only ring finger open: open the tool palette and choose with the ring fingertip.
-- Left hand, only little finger open: save a screenshot.
-- Left hand, open palm: erase.
-- Right hand, thumb and index active: pinch closer to make the brush and eraser smaller, or spread them apart to make them larger.
+- Right hand, only index finger open: draw in the air.
+- Right hand, only middle finger open: open the color palette and choose with the middle fingertip.
+- Right hand, only ring finger open: open the tool palette and choose with the ring fingertip.
+- Right hand, only little finger open: save a screenshot.
+- Right hand, open palm: erase.
+- Left hand, thumb and index active: pinch closer to make the brush and eraser smaller, or spread them apart to make them larger.
 
 ## One-click launchers
 

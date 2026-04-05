@@ -81,7 +81,7 @@ let sizeModeFrames = 0;
 let lastColorSelectAt = 0;
 let lastToolSelectAt = 0;
 let lastScreenshotAt = 0;
-let activeModeLabel = "Waiting for left hand";
+let activeModeLabel = "Waiting for right hand";
 let colorPaletteBoxes = [];
 let toolPaletteBoxes = [];
 const trackedPoints = new Map();
@@ -428,22 +428,22 @@ function updateStableGesture(nextGesture) {
   return gestureTracker.stable;
 }
 
-function updateSizeFromRightHand(rightHand) {
+function updateSizeFromLeftHand(leftHand) {
   sizeAdjustActive = false;
-  if (!rightHand) {
+  if (!leftHand) {
     sizeModeFrames = 0;
-    clearTrackedPoints(["right-thumb", "right-index"]);
+    clearTrackedPoints(["left-thumb", "left-index-size"]);
     return;
   }
 
-  const states = getFingerStates(rightHand);
+  const states = getFingerStates(leftHand);
   const wantsSizeMode = states.index && !states.middle && !states.ring && !states.pinky;
   sizeModeFrames = wantsSizeMode ? sizeModeFrames + 1 : 0;
   if (sizeModeFrames < STABILITY.sizeModeConfirmFrames) return;
 
   sizeAdjustActive = true;
-  const thumbTip = smoothTrackedPoint("right-thumb", landmarkToPoint(rightHand[4]), STABILITY.sizeSmoothing);
-  const indexTip = smoothTrackedPoint("right-index", landmarkToPoint(rightHand[8]), STABILITY.sizeSmoothing);
+  const thumbTip = smoothTrackedPoint("left-thumb", landmarkToPoint(leftHand[4]), STABILITY.sizeSmoothing);
+  const indexTip = smoothTrackedPoint("left-index-size", landmarkToPoint(leftHand[8]), STABILITY.sizeSmoothing);
   const distance = pointDistance(thumbTip, indexTip);
   const clampedDistance = Math.max(STABILITY.pinchMinDistance, Math.min(STABILITY.pinchMaxDistance, distance));
   const mappedScale = STABILITY.sizeScaleMin
@@ -475,7 +475,7 @@ function renderHud() {
   stageCtx.fillText(`Tool: ${selectedTool.name}`, 34, 122);
 
   stageCtx.font = '600 18px "Manrope", sans-serif';
-  stageCtx.fillText("Left hand draws. Right thumb + index change size.", 590, 52);
+  stageCtx.fillText("Right hand draws. Left thumb + index change size.", 590, 52);
   stageCtx.fillText(`Brush ${getToolThickness()} px`, 590, 82);
   stageCtx.fillText(`Eraser ${getEraserThickness()} px`, 590, 112);
 
@@ -509,20 +509,20 @@ function getHandsByLabel(result) {
   return hands;
 }
 
-function handleLeftHand(leftHand, gesture) {
-  if (!leftHand) {
+function handleRightHand(rightHand, gesture) {
+  if (!rightHand) {
     previousPoint = null;
     gestureTracker.candidate = "idle";
     gestureTracker.stable = "idle";
     gestureTracker.frames = 0;
-    clearTrackedPoints(["left-index", "left-middle", "left-ring"]);
-    activeModeLabel = "Waiting for left hand";
+    clearTrackedPoints(["right-index", "right-middle", "right-ring"]);
+    activeModeLabel = "Waiting for right hand";
     return;
   }
 
-  const indexTip = smoothTrackedPoint("left-index", landmarkToPoint(leftHand[8]), STABILITY.drawSmoothing);
-  const middleTip = smoothTrackedPoint("left-middle", landmarkToPoint(leftHand[12]), STABILITY.paletteSmoothing);
-  const ringTip = smoothTrackedPoint("left-ring", landmarkToPoint(leftHand[16]), STABILITY.paletteSmoothing);
+  const indexTip = smoothTrackedPoint("right-index", landmarkToPoint(rightHand[8]), STABILITY.drawSmoothing);
+  const middleTip = smoothTrackedPoint("right-middle", landmarkToPoint(rightHand[12]), STABILITY.paletteSmoothing);
+  const ringTip = smoothTrackedPoint("right-ring", landmarkToPoint(rightHand[16]), STABILITY.paletteSmoothing);
   const drawPoint = smoothPoint(indexTip);
   const brushThickness = getToolThickness();
   const eraserThickness = getEraserThickness();
@@ -608,13 +608,13 @@ async function renderLoop() {
   if (left) drawHandMesh(left, "Left");
   if (right) drawHandMesh(right, "Right");
 
-  const leftStates = left ? getFingerStates(left) : null;
-  const gesture = leftStates ? updateStableGesture(classifyGesture(leftStates)) : "idle";
+  const rightStates = right ? getFingerStates(right) : null;
+  const gesture = rightStates ? updateStableGesture(classifyGesture(rightStates)) : "idle";
 
-  updateSizeFromRightHand(right);
+  updateSizeFromLeftHand(left);
   drawColorPalette(gesture === "color");
   drawToolPalette(gesture === "tool");
-  handleLeftHand(left, gesture);
+  handleRightHand(right, gesture);
   renderHud();
   updateMetrics();
 
@@ -656,7 +656,7 @@ async function startCamera() {
     resizeCanvases();
     clearButton.disabled = false;
     shotButton.disabled = false;
-    setStatus("Camera is live. Use your left hand to draw.");
+    setStatus("Camera is live. Use your right hand to draw.");
     cancelAnimationFrame(animationFrameId);
     animationFrameId = requestAnimationFrame(renderLoop);
   } catch (error) {
