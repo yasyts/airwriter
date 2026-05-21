@@ -60,12 +60,19 @@ const drawingLayer = document.createElement("canvas");
 const drawingCtx = drawingLayer.getContext("2d");
 
 const startButton = document.getElementById("startButton");
+const stopButton = document.getElementById("stopButton");
+const switchCameraButton = document.getElementById("switchCameraButton");
 const clearButton = document.getElementById("clearButton");
 const shotButton = document.getElementById("shotButton");
+const savePageButton = document.getElementById("savePageButton");
 const statusText = document.getElementById("statusText");
 const toolMetric = document.getElementById("toolMetric");
 const colorMetric = document.getElementById("colorMetric");
 const sizeMetric = document.getElementById("sizeMetric");
+
+let cameraDevices = [];
+let currentDeviceIndex = 0;
+let cameraRunning = false;
 
 let handLandmarker = null;
 let stream = null;
@@ -188,6 +195,7 @@ function classifyGesture(fingerStates) {
   if (middle && !index && !ring && !pinky) return "color";
   if (ring && !index && !middle && !pinky) return "tool";
   if (pinky && !index && !middle && !ring) return "screenshot";
+  if (index && middle && ring && !pinky) return "fourFingerShot";
   if (index && middle && ring && pinky) return "erase";
   return "idle";
 }
@@ -571,6 +579,19 @@ function handleRightHand(rightHand, gesture) {
     return;
   }
 
+  if (gesture === "fourFingerShot") {
+    activeModeLabel = "Auto Screenshot + Clear";
+    const now = performance.now();
+    if (now - lastScreenshotAt >= STABILITY.screenshotCooldownMs) {
+      downloadScreenshot();
+      setTimeout(() => {
+        clearCanvas();
+        setStatus("Auto screenshot saved & canvas cleared.");
+      }, 200);
+    }
+    return;
+  }
+
   activeModeLabel = "Idle";
 }
 
@@ -639,23 +660,43 @@ async function ensureLandmarker() {
   });
 }
 
+async function enumerateCameras() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    cameraDevices = devices.filter((d) => d.kind === "videoinput");
+    switchCameraButton.disabled = cameraDevices.length <= 1;
+  } catch (err) {
+    cameraDevices = [];
+  }
+}
+
+async function openCamera(deviceId) {
+  const constraints = {
+    video: deviceId
+      ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+      : { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+    audio: false,
+  };
+  if (stream) {
+    stream.getTracks().forEach((t) => t.stop());
+  }
+  stream = await navigator.mediaDevices.getUserMedia(constraints);
+  video.srcObject = stream;
+  await video.play();
+}
+
 async function startCamera() {
   startButton.disabled = true;
   try {
     await ensureLandmarker();
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: "user",
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-      },
-      audio: false,
-    });
-    video.srcObject = stream;
-    await video.play();
+    await openCamera(cameraDevices[currentDeviceIndex]?.deviceId || null);
+    await enumerateCameras();
     resizeCanvases();
+    cameraRunning = true;
+    stopButton.disabled = false;
     clearButton.disabled = false;
     shotButton.disabled = false;
+    savePageButton.disabled = false;
     setStatus("Camera is live. Use your right hand to draw.");
     cancelAnimationFrame(animationFrameId);
     animationFrameId = requestAnimationFrame(renderLoop);
@@ -666,9 +707,52 @@ async function startCamera() {
   }
 }
 
+function stopCamera() {
+  cameraRunning = false;
+  cancelAnimationFrame(animationFrameId);
+  if (stream) {
+    stream.getTracks().forEach((track) => track.stop());
+    stream = null;
+  }
+  video.srcObject = null;
+  stageCtx.clearRect(0, 0, stage.width, stage.height);
+  startButton.disabled = false;
+  stopButton.disabled = true;
+  switchCameraButton.disabled = true;
+  clearButton.disabled = true;
+  shotButton.disabled = true;
+  savePageButton.disabled = true;
+  setStatus("Camera stopped. Click Start Camera to begin again.");
+}
+
+async function switchCamera() {
+  if (cameraDevices.length <= 1) return;
+  currentDeviceIndex = (currentDeviceIndex + 1) % cameraDevices.length;
+  const device = cameraDevices[currentDeviceIndex];
+  try {
+    await openCamera(device.deviceId);
+    resizeCanvases();
+    setStatus(`Switched to: ${device.label || "Camera " + (currentDeviceIndex + 1)}`);
+  } catch (err) {
+    console.error(err);
+    setStatus("Failed to switch camera.");
+  }
+}
+
+function savePage() {
+  const link = document.createElement("a");
+  link.href = stage.toDataURL("image/png");
+  link.download = `airwriter-page-${new Date().toISOString().replace(/[:.]/g, "-")}.png`;
+  link.click();
+  setStatus("Page saved as image.");
+}
+
 startButton.addEventListener("click", startCamera);
+stopButton.addEventListener("click", stopCamera);
+switchCameraButton.addEventListener("click", switchCamera);
 clearButton.addEventListener("click", clearCanvas);
 shotButton.addEventListener("click", downloadScreenshot);
+savePageButton.addEventListener("click", savePage);
 
 window.addEventListener("beforeunload", () => {
   cancelAnimationFrame(animationFrameId);
@@ -676,3 +760,6 @@ window.addEventListener("beforeunload", () => {
     stream.getTracks().forEach((track) => track.stop());
   }
 });
+
+// Pre-enumerate cameras on load so Switch Camera is ready
+enumerateCameras();

@@ -6,10 +6,12 @@
   <title>Air Writer Live</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <div class="ambient-glow1"></div>
+  <div class="ambient-glow2"></div>
   <main class="shell">
     <section class="hero">
       <div class="hero-copy panel">
@@ -21,8 +23,11 @@
         </p>
         <div class="actions">
           <button id="startButton" class="button button-primary">Start Camera</button>
+          <button id="stopButton" class="button button-danger" disabled>Stop Camera</button>
+          <button id="switchCameraButton" class="button button-secondary" disabled>Switch Camera</button>
           <button id="clearButton" class="button button-secondary" disabled>Clear Canvas</button>
           <button id="shotButton" class="button button-secondary" disabled>Save Screenshot</button>
+          <button id="savePageButton" class="button button-secondary" disabled>Save Page</button>
           <a class="button button-secondary" href="./downloads/AirWriter-Studio-Windows.zip" download>Download Desktop App</a>
           <a class="button button-secondary" href="#connect-options">Connect To Other Apps</a>
         </div>
@@ -36,6 +41,7 @@
           <li><strong>Right middle</strong> opens color mode</li>
           <li><strong>Right ring</strong> opens tool mode</li>
           <li><strong>Right pinky</strong> saves a screenshot</li>
+          <li><strong>4 fingers (no pinky)</strong> auto screenshot + clear</li>
           <li><strong>Right open palm</strong> erases</li>
           <li><strong>Left thumb + index</strong> shrink or grow brush size</li>
         </ul>
